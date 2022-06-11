@@ -7,12 +7,22 @@ hadoop fs -put hive_employee_data/
 hadoop fs -ls /user/$USER/hive_employee_data
 hadoop fs -ls /user/$USER/hive_employee_data/employee.txt
 
+hive -e "CREATE DATABASE IF NOT EXISTS db_$USER"
+
 hive
+
+- Note: Change below command to specify your database name
+USE db_u5;
+
+SELECT current_database();
+
+SHOW TABLES;
+
 
 - Hive Data Types
 
 --Create table using ARRAY, MAP, STRUCT, and Composite data type
-CREATE TABLE employee (
+CREATE TABLE IF NOT EXISTS employee (
   name string,
   work_place ARRAY<string>,
   gender_age STRUCT<gender:string,age:int>,
@@ -26,7 +36,8 @@ MAP KEYS TERMINATED BY ':'
 STORED AS TEXTFILE;
 
 --Load data
-LOAD DATA INPATH '/user/u1/hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee;
+-- Note: Change the home directory path
+LOAD DATA INPATH 'hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee;
 
 --Query the whole table
 SELECT * FROM employee;
@@ -61,46 +72,6 @@ FROM employee;
 
 --Hive Database DDL
 
---Create database without checking if the database already exists.
-CREATE DATABASE myhivedb;
-
-–-Create database and checking if the database already exists.
-CREATE DATABASE IF NOT EXISTS myhivedb;
-
---Create database with location, comments, and metadata information
-CREATE DATABASE IF NOT EXISTS myhivedb
-COMMENT 'hive database'
-LOCATION '/hdfs/directory'
-WITH DBPROPERTIES ('creator'='atingupta2005','date'='2022-06-01');
-
---Show and describe database with wildcards
-SHOW DATABASES;
-SHOW DATABASES LIKE 'my.*';
-DESCRIBE DATABASE default;
-
---Use the database
-USE myhivedb;
-
---Show current database
-SELECT current_database();
-
---Drop the empty database.
-DROP DATABASE IF EXISTS myhivedb;
-
---Drop database with CASCADE
-DROP DATABASE IF EXISTS myhivedb CASCADE;
-
-
-show databases;
-USE default;
-
-exit;
-
-hadoop fs -put hive_employee_data/
-hadoop fs -ls /user/$USER/hive_employee_data
-
-hive
-
 --Hive Table DDL
 
 --Create internal table and load the data
@@ -118,20 +89,24 @@ COLLECTION ITEMS TERMINATED BY ','
 MAP KEYS TERMINATED BY ':'
 STORED AS TEXTFILE;
 
+
+!hadoop fs -put hive_employee_data/;
+
 LOAD DATA INPATH 'hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee_internal;
 
 select * from employee_internal;
 
-exit;
+!hadoop fs -put hive_employee_data/employee.txt hive_employee_data/employee.txt;
 
-hadoop fs -put hive_employee_data/
-
-hadoop fs -ls '/user/u1/hive_employee_data/employee.txt'
-
-hive
+!hadoop fs -ls hive_employee_data/employee.txt;
+!hadoop fs -ls hive_employee_data;
 
 drop table IF EXISTS employee_external;
 
+!hadoop fs -rm hive_employee_data/employee_table;
+
+--drop table employee_external;
+-- Note: Change the directory name from to specify your home directory
 --Create external table and load the data
 CREATE EXTERNAL TABLE IF NOT EXISTS employee_external (
    name string,
@@ -146,7 +121,7 @@ FIELDS TERMINATED BY '|'
 COLLECTION ITEMS TERMINATED BY ','
 MAP KEYS TERMINATED BY ':'
 STORED AS TEXTFILE
-LOCATION '/user/u1/hive_employee_data/employee_table';
+LOCATION '/user/u5/hive_employee_data/employee_table';
 
 LOAD DATA INPATH 'hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee_external;
 
@@ -191,9 +166,7 @@ SELECT COUNT(*) AS row_cnt FROM empty_like_employee;
 
 --Show tables
 SHOW TABLES;
-SHOW TABLES '*sam*';
-SHOW TABLES '*sam|lily*';
-SHOW TABLE EXTENDED LIKE 'employee_int*';
+SHOW TABLES '*emp*';
 
 --Show columns
 SHOW COLUMNS IN employee_internal;
@@ -220,9 +193,10 @@ show tables;
 --Alter table statements
 --Alter table name
 ALTER TABLE cte_employee RENAME TO cte_employee_backup;
+ALTER TABLE cte_employee_backup RENAME TO cte_employee;
 
 --Alter table properties, such as comments
-ALTER TABLE cte_employee_backup SET TBLPROPERTIES ('comment' = 'New comments');
+ALTER TABLE cte_employee SET TBLPROPERTIES ('comment' = 'New comments');
 
 show tables;
 
@@ -251,12 +225,6 @@ DESC ctas_employee;
 ALTER TABLE ctas_employee ADD COLUMNS (work string);
 
 --Verify the added columns
-DESC ctas_employee;
-
---Replace all columns
-ALTER TABLE ctas_employee REPLACE COLUMNS (name string);
-
---Verify the replaced all columns
 DESC ctas_employee;
 
 --Hive Partition and Buckets DDL
@@ -298,17 +266,11 @@ ALTER TABLE employee_partitioned DROP IF EXISTS PARTITION (month=9);
 
 SHOW PARTITIONS employee_partitioned;
 
---Rename partitions
-ALTER TABLE employee_partitioned PARTITION (year=2018, month=12) RENAME TO PARTITION (year=2018,month=10);
-
 SHOW PARTITIONS employee_partitioned;
 
-exit;
-hadoop fs -put hive_employee_data/
-hadoop fs -ls /user/$USER/hive_employee_data
-hadoop fs -ls /user/$USER/hive_employee_data/employee.txt
-
-hive
+!hadoop fs -put hive_employee_data/employee.txt hive_employee_data/employee.txt;
+!hadoop fs -ls hive_employee_data;
+!hadoop fs -ls hive_employee_data/employee.txt;
 
 --Load data to the partition
 LOAD DATA INPATH 'hive_employee_data/employee.txt'
@@ -325,6 +287,10 @@ ALTER TABLE employee_partitioned ADD COLUMNS (work string) CASCADE;
 ALTER TABLE employee_partitioned PARTITION COLUMN(year string);
 --Verify the changes
 DESC employee_partitioned;
+
+ALTER TABLE employee_partitioned PARTITION COLUMN(year int);
+DESC employee_partitioned;
+
 
 ALTER TABLE employee_partitioned PARTITION (year=2018) SET FILEFORMAT ORC;
 

@@ -12,8 +12,7 @@ SELECT DISTINCT name, work_place FROM employee;
 SELECT
 CASE WHEN gender_age.gender = 'Female' THEN 'Ms.'
 ELSE 'Mr.' END as title,
-name,
-IF(array_contains(work_place, 'New York'), 'US', 'CA') as country
+name
 FROM employee;
 
 --Nest SELECT after the FROM
@@ -144,12 +143,6 @@ FROM employee a
 UNION
 SELECT b.name as nm
 FROM employee_hr b;
-
---Order with UNION
-SELECT a.name as nm FROM employee a
-UNION ALL
-SELECT b.name as nm FROM employee_hr b
-ORDER BY nm;
 
 --Table employee implements INTERCEPT employee_hr
 SELECT a.name

@@ -1,11 +1,8 @@
 --Hive data manupulation
 
-exit;
-hadoop fs -put hive_employee_data/
-hadoop fs -ls /user/$USER/hive_employee_data
-hadoop fs -ls /user/$USER/hive_employee_data/employee.txt
-
-hive
+!hadoop fs -put hive_employee_data/employee.txt hive_employee_data/employee.txt;
+!hadoop fs -ls hive_employee_data;
+!hadoop fs -ls hive_employee_data/employee.txt;
 
 --Create partition table DDL.
 --Load local data to table
@@ -20,12 +17,14 @@ OVERWRITE INTO TABLE employee;
 SELECT name, work_place, gender_age FROM employee;
 
 --Insert specified columns
-CREATE TABLE emp_simple( -- Create a test table only has primary types
+-- Create a test table only has primary types
+CREATE TABLE emp_simple(
 name string,
 work_place string
 );
 
-INSERT INTO TABLE emp_simple(name) -- Specify which columns to insert
+-- Specify which columns to insert
+INSERT INTO TABLE emp_simple(name) 
 SELECT name FROM employee WHERE name = 'Will';
 
 --Insert values
@@ -36,10 +35,7 @@ SELECT * FROM emp_simple;
 --Export data and metadata of table
 EXPORT TABLE employee TO '/tmp/output5';
 
---dfs -ls -R /tmp/output5/
-
---Import table with the same name
-IMPORT FROM '/tmp/output5';
+!hadoop fs -ls /tmp;
 
 --ORDER, SORT
 SELECT name FROM employee ORDER BY name DESC;
@@ -54,16 +50,6 @@ SET mapred.reduce.tasks = 1;
 
 SELECT name FROM employee SORT BY name DESC;
 
---Distribute by
-SELECT name, employee_id
-FROM employee_hr DISTRIBUTE BY employee_id ;
-
---Used with SORT BY
-SELECT name, start_date FROM employee_hr DISTRIBUTE BY start_date SORT BY name;
-
---Cluster by
-SELECT name, employee_id FROM employee_hr CLUSTER BY name ;
-
 --Complex datatype function
 SELECT
 size(work_place) AS array_size,
@@ -72,25 +58,8 @@ size(depart_title) AS complex_size,
 size(depart_title["Product"]) AS nest_size
 FROM employee;
 
-SELECT size(null), size(array(null)), size(array());
-
 --Arrary functions
 SELECT array_contains(work_place, 'Toronto') AS is_Toronto, sort_array(work_place) AS sorted_array FROM employee;
-
---Date and time functions
-SELECT to_date(from_unixtime(unix_timestamp())) AS currentdate;
-
---To compare the difference of two date.
-SELECT (unix_timestamp('2018-01-21 18:00:00') - unix_timestamp('2018-01-10 11:00:00'))/60/60/24 AS daydiff;
-
---Get the file name form a Linux path
-SELECT reverse(split(reverse('/home/user/employee.txt'),'/')[0]) AS linux_file_name;
-
---collect set or list
-SELECT
-collect_set(gender_age.gender) AS gender_set,
-collect_list(gender_age.gender) AS gender_list
-FROM employee;
 
 --virtual columns
 SELECT INPUT__FILE__NAME,BLOCK__OFFSET__INSIDE__FILE AS OFFSIDE FROM employee;
@@ -146,6 +115,7 @@ INSERT INTO TABLE employee_update VALUES
 (102, 'Amit', '2018-01-02', null, 'N'), -- People has start_date update
 (105, 'Lily', '2018-04-01', null, 'N') -- People newly started
 ;
+
 
 -- Do a data merge from employee_update to employee_trans
 MERGE INTO employee_trans as tar USING employee_update as src
