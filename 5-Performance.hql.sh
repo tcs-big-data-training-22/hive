@@ -7,46 +7,14 @@ ANALYZE TABLE employee COMPUTE STATISTICS;
 
 ANALYZE TABLE employee COMPUTE STATISTICS NOSCAN;
 
-ANALYZE TABLE employee_partitioned PARTITION(year=2018, month=12) COMPUTE STATISTICS;
-
-ANALYZE TABLE employee_partitioned PARTITION(year, month) COMPUTE STATISTICS;
-
 ANALYZE TABLE employee_id COMPUTE STATISTICS FOR COLUMNS employee_id;
 
 --Check the statistics
-DESCRIBE EXTENDED employee_partitioned PARTITION(year=2018, month=12);
-
 DESCRIBE EXTENDED employee;
 
-DESCRIBE FORMATTED employee.name;
+DESCRIBE FORMATTED employee;
 
 SET hive.stats.autogather=ture;
-
---Create Index
-CREATE INDEX idx_id_employee_id
-ON TABLE employee_id (employee_id)
-AS 'COMPACT'
-WITH DEFERRED REBUILD;
-
-CREATE INDEX idx_gender_employee_id
-ON TABLE employee_id (gender_age)
-AS 'BITMAP'
-WITH DEFERRED REBUILD;
-
---Rebuild index
-ALTER INDEX idx_id_employee_id ON employee_id REBUILD;
-ALTER INDEX idx_gender_employee_id ON employee_id REBUILD;
-
---show index tables
-SHOW TABLES '*idx*';
-
---Show index
-DESC default__employee_id_idx_id_employee_id__;
-SELECT * FROM default__employee_id_idx_id_employee_id__;
-
---Drop index
-DROP INDEX idx_id_employee_id ON employee_id;
-DROP INDEX idx_gender_employee_id ON employee_id;
 
 --Use screw tables
 CREATE TABLE sample_skewed_table (
@@ -111,12 +79,3 @@ SET hive.skewjoin.key=100000;
 
 --Skew data in GROUP BY
 SET hive.groupby.skewindata=true;
-
---Job engine
---vectorized
-SET hive.vectorized.execution.enabled=true; -- default false
---cbo
-SET hive.cbo.enable=true; -- default true after v0.14.0
-SET hive.compute.query.using.stats=true; -- default false
-SET hive.stats.fetch.column.stats=true; -- default false
-SET hive.stats.fetch.partition.stats=true; -- default true

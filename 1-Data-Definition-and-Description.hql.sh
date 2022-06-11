@@ -1,3 +1,14 @@
+wget https://sadatashareagsparkml.blob.core.windows.net/hadoop-bangalore/hive_employee_data.zip
+#hadoop fs -rmr hive_employee_data
+unzip -n hive_employee_data.zip
+ls -al hive_employee_data
+hadoop fs -rmr hive_employee_data
+hadoop fs -put hive_employee_data/
+hadoop fs -ls /user/$USER/hive_employee_data
+hadoop fs -ls /user/$USER/hive_employee_data/employee.txt
+
+hive
+
 - Hive Data Types
 
 --Create table using ARRAY, MAP, STRUCT, and Composite data type
@@ -14,11 +25,8 @@ COLLECTION ITEMS TERMINATED BY ','
 MAP KEYS TERMINATED BY ':'
 STORED AS TEXTFILE;
 
---Verify tables creations run in Beeline
-!table employee
-
 --Load data
-LOAD DATA INPATH '/tmp/hivesampledata/data/employee.txt' OVERWRITE INTO TABLE employee;
+LOAD DATA INPATH '/user/u1/hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee;
 
 --Query the whole table
 SELECT * FROM employee;
@@ -82,12 +90,18 @@ DROP DATABASE IF EXISTS myhivedb;
 --Drop database with CASCADE
 DROP DATABASE IF EXISTS myhivedb CASCADE;
 
---metadata about database could not be changed.
-ALTER DATABASE myhivedb SET DBPROPERTIES ('edited-by' = 'Atin');
 
-ALTER DATABASE myhivedb SET OWNER user atingupta2005;
+show databases;
+USE default;
 
---Chapter 3 Code - Hive Table DDL
+exit;
+
+hadoop fs -put hive_employee_data/
+hadoop fs -ls /user/$USER/hive_employee_data
+
+hive
+
+--Hive Table DDL
 
 --Create internal table and load the data
 CREATE TABLE IF NOT EXISTS employee_internal (
@@ -104,7 +118,19 @@ COLLECTION ITEMS TERMINATED BY ','
 MAP KEYS TERMINATED BY ':'
 STORED AS TEXTFILE;
 
-LOAD DATA INPATH '/tmp/hivesampledata/data/employee.txt' OVERWRITE INTO TABLE employee_internal;
+LOAD DATA INPATH 'hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee_internal;
+
+select * from employee_internal;
+
+exit;
+
+hadoop fs -put hive_employee_data/
+
+hadoop fs -ls '/user/u1/hive_employee_data/employee.txt'
+
+hive
+
+drop table IF EXISTS employee_external;
 
 --Create external table and load the data
 CREATE EXTERNAL TABLE IF NOT EXISTS employee_external (
@@ -120,9 +146,12 @@ FIELDS TERMINATED BY '|'
 COLLECTION ITEMS TERMINATED BY ','
 MAP KEYS TERMINATED BY ':'
 STORED AS TEXTFILE
-LOCATION '/user/atingupta2005/employee';
+LOCATION '/user/u1/hive_employee_data/employee_table';
 
-LOAD DATA INPATH '/tmp/hivesampledata/data/employee.txt' OVERWRITE INTO TABLE employee_external;
+LOAD DATA INPATH 'hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee_external;
+
+select * from employee_external;
+
 
 --Create Table With Data - CREATE TABLE AS SELECT (CTAS)
 CREATE TABLE ctas_employee AS SELECT * FROM employee_external;
@@ -186,28 +215,23 @@ TRUNCATE TABLE cte_employee;
 
 SELECT * FROM cte_employee;
 
+show tables;
+
 --Alter table statements
 --Alter table name
 ALTER TABLE cte_employee RENAME TO cte_employee_backup;
 
 --Alter table properties, such as comments
-ALTER TABLE c_employee SET TBLPROPERTIES ('comment' = 'New comments');
+ALTER TABLE cte_employee_backup SET TBLPROPERTIES ('comment' = 'New comments');
 
---Alter Table Location
-ALTER TABLE c_employee SET LOCATION 'hdfs://localhost:9000/user/atingupta2005/employee';
-
---Alter Table Location
-ALTER TABLE c_employee ENABLE NO_DROP;
-ALTER TABLE c_employee DISABLE NO_DROP;
-ALTER TABLE c_employee ENABLE OFFLINE;
-ALTER TABLE c_employee DISABLE OFFLINE;
+show tables;
 
 --Alter columns
 --Change column type - before changes
 DESC employee_internal;
 
 --Change column type
-ALTER TABLE employee_internal CHANGE name employee_name string AFTER gender_age;
+ALTER TABLE employee_internal CHANGE name employee_name string;
 
 --Verify the changes
 DESC employee_internal;
@@ -218,20 +242,22 @@ ALTER TABLE employee_internal CHANGE employee_name name string FIRST;
 --Verify the changes
 DESC employee_internal;
 
+SHOW TABLES;
+
 --Add/Replace Columns-before add
-DESC c_employee;
+DESC ctas_employee;
 
 --Add columns to the table
-ALTER TABLE c_employee ADD COLUMNS (work string);
+ALTER TABLE ctas_employee ADD COLUMNS (work string);
 
 --Verify the added columns
-DESC c_employee;
+DESC ctas_employee;
 
 --Replace all columns
-ALTER TABLE c_employee REPLACE COLUMNS (name string);
+ALTER TABLE ctas_employee REPLACE COLUMNS (name string);
 
 --Verify the replaced all columns
-DESC c_employee;
+DESC ctas_employee;
 
 --Hive Partition and Buckets DDL
 
@@ -277,10 +303,15 @@ ALTER TABLE employee_partitioned PARTITION (year=2018, month=12) RENAME TO PARTI
 
 SHOW PARTITIONS employee_partitioned;
 
---ALTER TABLE employee_partitioned PARTITION (year=2018) RENAME TO PARTITION (year=2017); --Failed, must specify all partitions
+exit;
+hadoop fs -put hive_employee_data/
+hadoop fs -ls /user/$USER/hive_employee_data
+hadoop fs -ls /user/$USER/hive_employee_data/employee.txt
+
+hive
 
 --Load data to the partition
-LOAD DATA INPATH '/tmp/hivesampledata/data/employee.txt'
+LOAD DATA INPATH 'hive_employee_data/employee.txt'
 OVERWRITE INTO TABLE employee_partitioned
 PARTITION (year=2018, month=12);
 
@@ -296,12 +327,6 @@ ALTER TABLE employee_partitioned PARTITION COLUMN(year string);
 DESC employee_partitioned;
 
 ALTER TABLE employee_partitioned PARTITION (year=2018) SET FILEFORMAT ORC;
-ALTER TABLE employee_partitioned PARTITION (year=2018) SET LOCATION '/tmp/data';
-ALTER TABLE employee_partitioned PARTITION (year=2018) ENABLE NO_DROP;
-ALTER TABLE employee_partitioned PARTITION (year=2018) ENABLE OFFLINE;
-ALTER TABLE employee_partitioned PARTITION (year=2018) DISABLE NO_DROP;
-ALTER TABLE employee_partitioned PARTITION (year=2018) DISABLE OFFLINE;
-ALTER TABLE employee_partitioned PARTITION (year=2018) CONCATENATE;
 
 --Create a table with bucketing
 --Prepare data for backet tables
@@ -319,7 +344,9 @@ FIELDS TERMINATED BY '|'
 COLLECTION ITEMS TERMINATED BY ','
 MAP KEYS TERMINATED BY ':';
 
-LOAD DATA INPATH '/tmp/hivesampledata/data/employee_id.txt' OVERWRITE INTO TABLE employee_id;
+LOAD DATA INPATH 'hive_employee_data/employee_id.txt' OVERWRITE INTO TABLE employee_id;
+
+select * from employee_id;
 
 --Create the bucket table
 CREATE TABLE employee_id_buckets
@@ -342,6 +369,8 @@ set map.reduce.tasks = 2;
 set hive.enforce.bucketing = true;
 
 INSERT OVERWRITE TABLE employee_id_buckets SELECT * FROM employee_id;
+
+select * from employee_id_buckets;
 
 --Hive View DDL
 
@@ -368,12 +397,8 @@ ALTER VIEW employee_skills AS SELECT * from employee ;
 --Drop views
 DROP VIEW employee_skills;
 
+select * from employee_internal;
+
 --Lateralview
 SELECT name, workplace FROM employee_internal
 LATERAL VIEW explode(work_place) wp as workplace;
-
-SELECT name, workplace FROM employee_internal
-LATERAL VIEW explode(split(null, ',')) wp AS workplace;
-
-SELECT name, workplace FROM employee_internal
-LATERAL VIEW OUTER explode(split(null, ',')) wp AS workplace;

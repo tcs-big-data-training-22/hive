@@ -5,10 +5,6 @@ SELECT * FROM employee;
 --Select only one column
 SELECT name FROM employee;
 
---List columns meet java regular expression
-SET hive.support.quoted.identifiers = none;
-SELECT `^work.*` FROM employee;
-
 --Select unique rows
 SELECT DISTINCT name, work_place FROM employee;
 
@@ -33,17 +29,11 @@ SELECT * FROM employee
 WHERE gender_age.gender = 'Male')
 SELECT name, gender_age.gender AS gender FROM t1;
 
---Select with expression
-SELECT concat('1','+','3','=',cast((1 + 3) as string)) as res;
-
 --Filter data with limit
 SELECT name FROM employee LIMIT 2;
 
 --Filter with Where
 SELECT name, work_place FROM employee WHERE name = 'Umesh';
-
---Filter with Where and Limit
-SELECT name, work_place FROM employee WHERE name = 'Umesh' LIMIT 1;
 
 --Filter with in
 SELECT name FROM employee WHERE gender_age.age in (27, 30);
@@ -77,18 +67,14 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
 STORED AS TEXTFILE;
 
-LOAD DATA INPATH '/tmp/hivesampledata/data/employee_hr.txt' OVERWRITE INTO TABLE employee_hr;
+LOAD DATA INPATH 'hive_employee_data/employee_hr.txt' OVERWRITE INTO TABLE employee_hr;
+
+select * from employee_hr;
 
 --Equal JOIN between two tables
 SELECT emp.name, emph.sin_number
 FROM employee emp
 JOIN employee_hr emph ON emp.name = emph.name;
-
---Unequal join returns more rows
-SELECT
-emp.name, emph.sin_number
-FROM employee emp
-JOIN employee_hr emph ON emp.name != emph.name;
 
 --Join with complex expression - conditional join
 SELECT
@@ -117,24 +103,6 @@ FROM employee emp
 JOIN employee emp_b
 ON emp.name = emp_b.name;
 
---Implicit join, which support since Hive 0.13.0
-SELECT emp.name, emph.sin_number
-FROM employee emp, employee_hr emph
-WHERE emp.name = emph.name;
-
---Join using different columns will create additional mapreduce
-SELECT emp.name, empi.employee_id, emph.sin_number
-FROM employee emp
-JOIN employee_hr emph ON emp.name = emph.name
-JOIN employee_id empi ON emph.employee_id = empi.employee_id;
-
---Streaming tables
-SELECT /*+ STREAMTABLE(employee_hr) */
-emp.name, empi.employee_id, emph.sin_number
-FROM employee emp
-JOIN employee_hr emph ON emp.name = emph.name
-JOIN employee_id empi ON emph.employee_id = empi.employee_id;
-
 --Left JOIN
 SELECT emp.name, emph.sin_number
 FROM employee emp
@@ -150,33 +118,6 @@ SELECT emp.name, emph.sin_number
 FROM employee emp
 FULL JOIN employee_hr emph ON emp.name = emph.name;
 
---CROSS JOIN in different ways
-SELECT emp.name, emph.sin_number
-FROM employee emp
-CROSS JOIN employee_hr emph;
-
-SELECT emp.name, emph.sin_number
-FROM employee emp
-JOIN employee_hr emph;
-
-SELECT emp.name, emph.sin_number
-FROM employee emp
-JOIN employee_hr emph on 1=1;
-
---unequal JOIN
-SELECT emp.name, emph.sin_number
-FROM employee emp
-CROSS JOIN employee_hr emph WHERE emp.name <> emph.name;
-
---An example MAP JOIN enabled by query hint
-SELECT /*+ MAPJOIN(employee) */ emp.name, emph.sin_number
-FROM employee emp
-CROSS JOIN employee_hr emph WHERE emp.name <> emph.name;
-
---BUCKET Map Join settings
-SET hive.optimize.bucketmapjoin = true;
-SET hive.optimize.bucketmapjoin.sortedmerge = true;
-SET hive.input.format=org.apache.hadoop.hive.ql.io.BucketizedHiveInputFormat;
 
 --LEFT SEMI JOIN
 SELECT a.name

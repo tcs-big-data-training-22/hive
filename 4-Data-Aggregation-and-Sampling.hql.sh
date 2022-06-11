@@ -7,11 +7,6 @@ SELECT count(*) as rowcnt1, count(1) AS rowcnt2 FROM employee;
 SELECT gender_age.gender, count(*) AS row_cnt FROM employee
 GROUP BY gender_age.gender;
 
---The column age is not in the group by columns,
---FAILED: SemanticException [Error 10002]: Line 1:15 Invalid column reference 'age'
---SELECT gender_age.age, gender_age.gender, count(*) AS row_cnt
---FROM employee GROUP BY gender_age.gender;
-
 --Multiple aggregate functions are called in the same SELECT
 SELECT gender_age.gender, AVG(gender_age.age) AS avg_age,
 count(*) AS row_cnt FROM employee GROUP BY gender_age.gender;
@@ -27,15 +22,9 @@ sum(coalesce(gender_age.age,0)) AS age_sum,
 sum(if(gender_age.gender = 'Female',gender_age.age,0))
 AS female_age_sum FROM employee;
 
---Nested aggregate functions are not allowed
---FAILED: SemanticException [Error 10128]: Line 1:11 Not yet supported place for UDAF 'count'
---SELECT avg(count(*)) AS row_cnt FROM employee;
-
---Aggregate functions cannot apply to null
---SELECT sum(null), avg(null);
-
 --Aggregation across columns with NULL value.
 SELECT max(null), min(null), count(null);
+
 ---Prepare a table for testing
 CREATE TABLE t (val1 int, val2 int);
 INSERT INTO TABLE t VALUES (1, 2),(null,2),(2,3);
@@ -114,6 +103,7 @@ name, start_date, count(sin_number) as sin_cnt
 FROM employee_hr
 GROUP BY name, start_date
 GROUPING SETS((name, start_date), name, start_date, ());
+
 --||-- equals to
 SELECT
 name, start_date, count(sin_number) AS sin_cnt
@@ -169,7 +159,7 @@ FIELDS TERMINATED BY '|'
 STORED AS TEXTFILE;
 
 LOAD DATA INPATH
-'/tmp/hivesampledata/data/employee_contract.txt'
+'hive_employee_data/employee_contract.txt'
 OVERWRITE INTO TABLE employee_contract;
 
 --window aggregate functions
@@ -278,9 +268,3 @@ SELECT name FROM employee_trans TABLESAMPLE(BUCKET 1 OUT OF 2 ON emp_id) a;
 
 --Block sampling - Sample by rows
 SELECT name FROM employee TABLESAMPLE(1 ROWS) a;
-
---Sample by percentage of data size
-SELECT name FROM employee TABLESAMPLE(50 PERCENT) a;
-
---Sample by data size
-SELECT name FROM employee TABLESAMPLE(3b) a;

@@ -1,32 +1,22 @@
 --Hive data manupulation
 
+exit;
+hadoop fs -put hive_employee_data/
+hadoop fs -ls /user/$USER/hive_employee_data
+hadoop fs -ls /user/$USER/hive_employee_data/employee.txt
+
+hive
+
 --Create partition table DDL.
 --Load local data to table
-LOAD DATA LOCAL INPATH '/home/atingupta2005/Downloads/employee_hr.txt' OVERWRITE INTO TABLE employee_hr;
-
---Load local data to partition table
-LOAD DATA LOCAL INPATH '/home/atingupta2005/Downloads/employee.txt'
-OVERWRITE INTO TABLE employee_partitioned
-PARTITION (year=2018, month=12);
+LOAD DATA LOCAL INPATH 'hive_employee_data/employee_hr.txt' OVERWRITE INTO TABLE employee_hr;
 
 --Load HDFS data to table using default system path
-LOAD DATA INPATH '/tmp/hivesampledata/data/employee.txt'
-OVERWRITE INTO TABLE employee;
-
---Load HDFS data to table with full URI
-LOAD DATA INPATH
-'hdfs://[dfs_hostname]:9000/tmp/hivesampledata/data/employee.txt'
+LOAD DATA INPATH 'hive_employee_data/employee.txt'
 OVERWRITE INTO TABLE employee;
 
 --Data Exchange - INSERT
 --Check the target table
-SELECT name, work_place, gender_age FROM employee;
-
---Populate data from SELECT
-INSERT INTO TABLE employee
-SELECT * FROM ctas_employee;
-
---Verify the data loaded
 SELECT name, work_place, gender_age FROM employee;
 
 --Insert specified columns
@@ -34,6 +24,7 @@ CREATE TABLE emp_simple( -- Create a test table only has primary types
 name string,
 work_place string
 );
+
 INSERT INTO TABLE emp_simple(name) -- Specify which columns to insert
 SELECT name FROM employee WHERE name = 'Will';
 
@@ -41,55 +32,6 @@ SELECT name FROM employee WHERE name = 'Will';
 INSERT INTO TABLE emp_simple VALUES ('Umesh', 'Toronto'),('Lucy', 'Montreal');
 SELECT * FROM emp_simple;
 
---INSERT from CTE
-WITH a as (SELECT * FROM ctas_employee )
-FROM a
-INSERT OVERWRITE TABLE employee
-SELECT *;
-
---Multiple INSERTS by only scanning the source table once
-FROM ctas_employee
-INSERT OVERWRITE TABLE employee
-SELECT *
-INSERT OVERWRITE TABLE employee_internal
-SELECT *
-INSERT OVERWRITE TABLE employee_partitioned partition(year=2018, month=9)
-SELECT *
-;
-
---Dynamic partition is not enabled by default. We need to set following to make it work.
-SET hive.exec.dynamic.partition=true;
-SET hive.exec.dynamic.partition.mode=nostrict;
-
---Dynamic partition insert
-INSERT INTO TABLE employee_partitioned PARTITION(year, month)
-SELECT name, array('Toronto') as work_place,
-named_struct("gender","Male","age",30) as gender_age,
-map("Python",90) as skills_score,
-map("R&D",array('Developer')) as depart_title,
-year(start_date) as year, month(start_date) as month
-FROM employee_hr eh
-WHERE eh.employee_id = 102;
-
---Verify the inserted row
-SELECT name,depart_title,year,month FROM employee_partitioned
-WHERE name = 'Amit';
-
---Insert to local files with default row separators
-INSERT OVERWRITE LOCAL DIRECTORY '/tmp/output1'
-SELECT * FROM employee;
-
---Insert to local files with specified row separators
-INSERT OVERWRITE LOCAL DIRECTORY '/tmp/output2'
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
-SELECT * FROM employee;
-
---Multiple INSERT
-FROM employee
-INSERT OVERWRITE DIRECTORY '/tmp/output3'
-SELECT *
-INSERT OVERWRITE DIRECTORY '/tmp/output4'
-SELECT * ;
 
 --Export data and metadata of table
 EXPORT TABLE employee TO '/tmp/output5';
@@ -99,24 +41,8 @@ EXPORT TABLE employee TO '/tmp/output5';
 --Import table with the same name
 IMPORT FROM '/tmp/output5';
 
---Import as new table
-IMPORT TABLE empolyee_imported FROM '/tmp/output5';
-
---Import as external table
-IMPORT EXTERNAL TABLE empolyee_imported_external
-FROM '/tmp/output5'
-LOCATION '/tmp/output6' ; --Note, LOCATION property is optional.
-
---Export and import to partitions
-EXPORT TABLE employee_partitioned partition
-(year=2018, month=12) TO '/tmp/output7';
-
-IMPORT TABLE employee_partitioned_imported
-FROM '/tmp/output7';
-
 --ORDER, SORT
 SELECT name FROM employee ORDER BY name DESC;
-SELECT * FROM emp_simple ORDER BY work_place NULL LAST;
 
 --Use more than 1 reducer
 SET mapred.reduce.tasks = 2;
@@ -203,6 +129,7 @@ SELECT quit_date, quit_flag FROM employee_trans WHERE emp_id = 104;
 --Delete
 DELETE FROM employee_trans WHERE emp_id = 104;
 SELECT * FROM employee_trans WHERE emp_id = 104;
+SELECT * FROM employee_trans;
 
 --Merge
 --prepare another table
