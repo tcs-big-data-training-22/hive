@@ -1,8 +1,10 @@
+# Connect to hadoop using ssh (If required)
+ssh $USER@localhost -p 2222
+cd
 wget https://sadatashareagsparkml.blob.core.windows.net/hadoop-bangalore/hive_employee_data.zip
-#hadoop fs -rmr hive_employee_data
 unzip -n hive_employee_data.zip
 ls -al hive_employee_data
-hadoop fs -rmr hive_employee_data
+#hadoop fs -rmr hive_employee_data
 hadoop fs -put hive_employee_data/
 hadoop fs -ls /user/$USER/hive_employee_data
 hadoop fs -ls /user/$USER/hive_employee_data/employee.txt
@@ -11,8 +13,8 @@ hive -e "CREATE DATABASE IF NOT EXISTS db_$USER"
 
 hive
 
-- Note: Change below command to specify your database name
-USE db_u5;
+#################################-- - Note: Change below command to specify your database name
+USE db_u20;
 
 SELECT current_database();
 
@@ -36,7 +38,8 @@ MAP KEYS TERMINATED BY ':'
 STORED AS TEXTFILE;
 
 --Load data
--- Note: Change the home directory path
+#################################-- Note: Change the home directory path###############
+!hadoop fs -put hive_employee_data/;
 LOAD DATA INPATH 'hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee;
 
 --Query the whole table
@@ -106,7 +109,7 @@ drop table IF EXISTS employee_external;
 !hadoop fs -rm hive_employee_data/employee_table;
 
 --drop table employee_external;
--- Note: Change the directory name from to specify your home directory
+#################################-- -- Note: Change the directory name from to specify your home directory
 --Create external table and load the data
 CREATE EXTERNAL TABLE IF NOT EXISTS employee_external (
    name string,
@@ -121,7 +124,7 @@ FIELDS TERMINATED BY '|'
 COLLECTION ITEMS TERMINATED BY ','
 MAP KEYS TERMINATED BY ':'
 STORED AS TEXTFILE
-LOCATION '/user/u5/hive_employee_data/employee_table';
+LOCATION '/user/u20/hive_employee_data/employee_table';
 
 LOAD DATA INPATH 'hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee_external;
 
@@ -260,7 +263,8 @@ SHOW PARTITIONS employee_partitioned;
 --Drop partitions
 ALTER TABLE employee_partitioned DROP PARTITION (year=2018, month=11);
 
-ALTER TABLE employee_partitioned DROP IF EXISTS PARTITION (year=2017); -- Drop all partitions in 2017
+-- Drop all partitions in 2017;
+ALTER TABLE employee_partitioned DROP IF EXISTS PARTITION (year=2017); 
 
 ALTER TABLE employee_partitioned DROP IF EXISTS PARTITION (month=9);
 

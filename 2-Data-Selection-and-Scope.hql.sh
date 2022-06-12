@@ -1,3 +1,11 @@
+## Start Hive if not running already
+hive
+
+
+######################Note: Use your database after changing in below code
+show databases;
+use db_u20;
+
 --Hive SELECT, JOIN, and UNION
 --Query all columns in the table
 SELECT * FROM employee;

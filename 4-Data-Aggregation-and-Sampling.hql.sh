@@ -1,3 +1,12 @@
+## Start Hive if not running already
+hive
+
+
+######################Note: Use your database after changing in below code
+show databases;
+use db_u20;
+
+
 --Hive Data Aggregation and Sampling
 
 --Aggregation without GROUP BY columns
@@ -35,6 +44,4 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
 STORED AS TEXTFILE;
 
-LOAD DATA INPATH
-'hive_employee_data/employee_contract.txt'
-OVERWRITE INTO TABLE employee_contract;
+LOAD DATA INPATH 'hive_employee_data/employee_contract.txt' OVERWRITE INTO TABLE employee_contract;

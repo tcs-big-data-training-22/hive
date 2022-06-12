@@ -1,3 +1,12 @@
+## Start Hive if not running already
+hive
+
+
+######################Note: Use your database after changing in below code
+show databases;
+use db_u20;
+
+
 --Hive data manupulation
 
 !hadoop fs -put hive_employee_data/employee.txt hive_employee_data/employee.txt;
