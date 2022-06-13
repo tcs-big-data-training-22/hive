@@ -1,5 +1,5 @@
 # Connect to hadoop using ssh (If required)
-ssh $USER@localhost -p 2222
+ssh $USER@44.205.227.117 -p 22
 cd
 wget https://sadatashareagsparkml.blob.core.windows.net/hadoop-bangalore/hive_employee_data.zip
 unzip -n hive_employee_data.zip
@@ -264,7 +264,7 @@ SHOW PARTITIONS employee_partitioned;
 ALTER TABLE employee_partitioned DROP PARTITION (year=2018, month=11);
 
 -- Drop all partitions in 2017;
-ALTER TABLE employee_partitioned DROP IF EXISTS PARTITION (year=2017); 
+ALTER TABLE employee_partitioned DROP IF EXISTS PARTITION (year=2017);
 
 ALTER TABLE employee_partitioned DROP IF EXISTS PARTITION (month=9);
 
