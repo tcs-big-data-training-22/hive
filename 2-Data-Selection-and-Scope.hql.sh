@@ -152,7 +152,7 @@ UNION
 SELECT b.name as nm
 FROM employee_hr b;
 
---Table employee implements INTERCEPT employee_hr
+--Table employee implements INTERSECT employee_hr
 SELECT a.name
 FROM employee a
 JOIN employee_hr b
