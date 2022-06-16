@@ -1,5 +1,6 @@
 # Connect to hadoop using ssh (If required)
-ssh $USER@44.205.227.117 -p 22
+ssh $USER@20.245.236.124
+
 cd
 wget https://sadatashareagsparkml.blob.core.windows.net/hadoop-bangalore/hive_employee_data.zip
 unzip -n hive_employee_data.zip
