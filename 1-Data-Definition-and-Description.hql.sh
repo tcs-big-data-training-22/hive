@@ -6,16 +6,16 @@ wget https://sadatashareagsparkml.blob.core.windows.net/hadoop-bangalore/hive_em
 unzip -n hive_employee_data.zip
 ls -al hive_employee_data
 #hadoop fs -rmr hive_employee_data
+hadoop fs -ls /user
 hadoop fs -put hive_employee_data/
 hadoop fs -ls /user/$USER/hive_employee_data
 hadoop fs -ls /user/$USER/hive_employee_data/employee.txt
 
-hive -e "CREATE DATABASE IF NOT EXISTS db_$USER"
-
-hive
+beeline -u 'jdbc:hive2://headnodehost:10001/;transportMode=http' -n u18 -p Hadp@Trng987619
 
 #################################-- - Note: Change below command to specify your database name
-USE db_u20;
+CREATE DATABASE IF NOT EXISTS db_u18;
+USE db_u18;
 
 SELECT current_database();
 
@@ -40,8 +40,11 @@ STORED AS TEXTFILE;
 
 --Load data
 #################################-- Note: Change the home directory path###############
-!hadoop fs -put hive_employee_data/;
-LOAD DATA INPATH 'hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee;
+!sh unzip -n hive_employee_data.zip
+!sh ls ./hive_employee_data
+!sh hadoop fs -put hive_employee_data /user/u18;
+!sh hadoop fs -ls /user/u18
+LOAD DATA INPATH '/user/u18/hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee;
 
 --Query the whole table
 SELECT * FROM employee;
@@ -94,20 +97,21 @@ MAP KEYS TERMINATED BY ':'
 STORED AS TEXTFILE;
 
 
-!hadoop fs -put hive_employee_data/;
+!sh hadoop fs -put hive_employee_data /user/u18;
+!sh hadoop fs -ls /user/u18
 
 LOAD DATA INPATH 'hive_employee_data/employee.txt' OVERWRITE INTO TABLE employee_internal;
 
 select * from employee_internal;
 
-!hadoop fs -put hive_employee_data/employee.txt hive_employee_data/employee.txt;
+!sh hadoop fs -put hive_employee_data/employee.txt hive_employee_data/employee.txt;
 
-!hadoop fs -ls hive_employee_data/employee.txt;
-!hadoop fs -ls hive_employee_data;
+!sh hadoop fs -ls hive_employee_data/employee.txt;
+!sh hadoop fs -ls hive_employee_data;
 
 drop table IF EXISTS employee_external;
 
-!hadoop fs -rm hive_employee_data/employee_table;
+!sh hadoop fs -rm hive_employee_data/employee_table;
 
 --drop table employee_external;
 #################################-- -- Note: Change the directory name from to specify your home directory
