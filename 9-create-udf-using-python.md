@@ -17,12 +17,23 @@ for line in sys.stdin:
   print '\t'.join([str(id),str(vtype),str(price)])
 ```
 
+```
 beeline -u 'jdbc:hive2://headnodehost:10001/;transportMode=http'
+```
 
+```
 ADD FILE /home/u18/udf_v1.py;
+```
 
+```
 CREATE DATABASE tmp;
+```
+
+```
 USE tmp;
+```
+
+```
 CREATE TABLE foo (id INT, vtype STRING, price FLOAT);
 INSERT INTO TABLE foo VALUES (1, "car", 1000.);
 INSERT INTO TABLE foo VALUES (2, "car", 42.);
@@ -31,11 +42,16 @@ INSERT INTO TABLE foo VALUES (4, "car", 69.);
 INSERT INTO TABLE foo VALUES (5, "bike", 1426.);
 INSERT INTO TABLE foo VALUES (6, "bike", 32.);
 INSERT INTO TABLE foo VALUES (7, "bike", 1234.);
+```
 
+```
 select * from foo;
+```
 
+```
 SELECT TRANSFORM (id, vtype, price)
     USING 'python udf_v1.py' AS
     (id INT, vtype STRING, price FLOAT)
 FROM tmp.foo;
 ;
+```
