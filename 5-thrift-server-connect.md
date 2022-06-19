@@ -8,6 +8,11 @@
 jdbc:hive2://CLUSTERNAME.azurehdinsight.net:443/default;transportMode=http;ssl=true;httpPath=/hive2
 ```
 
+## Sample JDBC connection string
+```
+jdbc:hive2://tcshdinsight.azurehdinsight.net:443/default;transportMode=http;ssl=true;httpPath=/hive2
+```
+
 ## Host name in connection string
 - Host name 'CLUSTERNAME.azurehdinsight.net' in the connection string is the same as your cluster URL
 - You can get it through Azure portal.
